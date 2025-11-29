@@ -1,0 +1,255 @@
+#include <iostream>
+#include <string>
+using namespace std;
+class Booking {
+public:
+    string guestName;
+    string roomType;
+    string acType;
+    string checkIn;
+    string checkOut;
+    int days;
+    int pricePerDay;
+    int totalPrice;
+    string paymentMethod;
+    bool active;
+
+    int roomNumber; // NEW: Room Number
+
+    Booking() {
+        active = false;
+        roomNumber = 0;
+    }
+};
+
+class Hotel {
+private:
+    Booking bookings[2];
+    int bookingCount = 0;
+
+    int totalMembersEnteredToday = 0;
+    int totalCheckOutsToday = 0;
+
+    int nextRoomNumber = 1; // NEW: Auto-increasing room number
+
+    // -----------------------------------
+    // PRICE PER DAY
+    // -----------------------------------
+    int getRoomPrice(string roomType, string acType) {
+        if (roomType == "Family Room") {
+            return (acType == "AC") ? 4500 : 3500;
+        } else {
+            return (acType == "AC") ? 3000 : 2000;
+        }
+    }
+
+    // -----------------------------------
+    // PAYMENT FUNCTION
+    // -----------------------------------
+    string paymentFunction() {
+        int choice;
+        cout << "\nChoose Payment Method:\n";
+        cout << "1. Online Payment\n";
+        cout << "2. Cash Payment\n";
+        cout << "Choice: ";
+        cin >> choice;
+
+        if (choice == 1) {
+            int onlineChoice;
+            cout << "\nSelect Online Payment Option:\n";
+            cout << "1. Bank Transfer\n";
+            cout << "2. EasyPaisa\n";
+            cout << "3. JazzCash\n";
+            cout << "Choice: ";
+            cin >> onlineChoice;
+             int n;
+            cout<<"send the money this accout number ---------  "<<endl;
+            cout<<"1- send money \n 2- not send money ";
+            cin>>n;
+            if(n==1){
+            	cout<<"payment successfully "<<endl;
+			}
+            else if(n==2)
+          {
+	       cout<<"payment successfully "<<endl;
+		 }        
+		
+
+            if (onlineChoice == 1) return "Bank Transfer";
+            if (onlineChoice == 2) return "EasyPaisa";
+            return "JazzCash";
+        }
+
+        return "Cash Payment";
+    }
+
+    // -----------------------------------
+    // CALCULATE DAYS
+    // -----------------------------------
+    int calculateDays(int inDay, int inMonth, int inYear, int outDay, int outMonth, int outYear) {
+        int start = inYear * 360 + inMonth * 30 + inDay;
+        int end = outYear * 360 + outMonth * 30 + outDay;
+        int diff = end - start;
+        return (diff > 0) ? diff : 0;
+    }
+
+public:
+    // -----------------------------------
+    // ADD BOOKING
+    // -----------------------------------
+    void addBooking() {
+        if (bookingCount >= 100) {
+            cout << "Booking limit reached!\n";
+            return;
+        }
+
+        Booking b;
+
+        cin.ignore();
+        cout << "\nEnter Guest Name: ";
+        getline(cin, b.guestName);
+
+        int rChoice;
+        cout << "\nChoose Room Type:\n";
+        cout << "1. Family Room (4500/day AC, 3500/day Non-AC)\n";
+        cout << "2. Single Room (3000/day AC, 2000/day Non-AC)\n";
+        cout << "Choice: ";
+        cin >> rChoice;
+        b.roomType = (rChoice == 1) ? "Family Room" : "Single Room";
+
+        int acChoice;
+        cout << "\nChoose AC Type:\n1. AC\n2. Non-AC\nChoice: ";
+        cin >> acChoice;
+        b.acType = (acChoice == 1) ? "AC" : "Non-AC";
+
+        b.pricePerDay = getRoomPrice(b.roomType, b.acType);
+        cout << "\nSelected Room: " << b.roomType << " (" << b.acType << ")\n";
+        cout << "Price Per Day: Rs. " << b.pricePerDay << endl;
+
+        int inDay, inMonth, inYear;
+        int outDay, outMonth, outYear;
+        cout << "\nEnter Check-In Date (DD MM YYYY): ";
+        cin >> inDay >> inMonth >> inYear;
+        cout << "Enter Check-Out Date (DD MM YYYY): ";
+        cin >> outDay >> outMonth >> outYear;
+
+        b.checkIn = to_string(inDay) + "/" + to_string(inMonth) + "/" + to_string(inYear);
+        b.checkOut = to_string(outDay) + "/" + to_string(outMonth) + "/" + to_string(outYear);
+
+        b.days = calculateDays(inDay, inMonth, inYear, outDay, outMonth, outYear);
+
+        if (b.days <= 0) {
+            cout << "Check-Out date must be after Check-In date. Booking cancelled.\n";
+            return;
+        }
+
+        b.totalPrice = b.days * b.pricePerDay;
+
+        cout << "\nTotal Days: " << b.days;
+        cout << "\nTotal Price (Days × Price): Rs. " << b.totalPrice << endl;
+
+        totalMembersEnteredToday++;
+
+        b.paymentMethod = paymentFunction();
+        b.active = true;
+
+        // NEW: Assign room number
+        b.roomNumber = nextRoomNumber++;
+
+        bookings[bookingCount++] = b;
+
+        cout << "\nRoom booked successfully!\n";
+        cout << "Assigned Room Number: " << b.roomNumber << endl;
+    }
+
+    // -----------------------------------
+    // VIEW BOOKINGS
+    // -----------------------------------
+    void viewBookings() {
+        cout << "\n=========== ACTIVE BOOKINGS ===========\n";
+
+        bool ok = false;
+
+        for (int i = 0; i < bookingCount; i++) {
+            if (bookings[i].active) {
+                ok = true;
+
+                cout << "\nBooking #" << (i + 1) << endl;
+                cout << "Name: " << bookings[i].guestName << endl;
+                cout << "Room Type: " << bookings[i].roomType << " (" << bookings[i].acType << ")" << endl;
+                cout << "Room Number: " << bookings[i].roomNumber << endl; // NEW LINE
+                cout << "Check-In: " << bookings[i].checkIn << endl;
+                cout << "Check-Out: " << bookings[i].checkOut << endl;
+                cout << "Days: " << bookings[i].days << endl;
+                cout << "Price Per Day: Rs. " << bookings[i].pricePerDay << endl;
+                cout << "Total Price: Rs. " << bookings[i].totalPrice << endl;
+                cout << "Payment: " << bookings[i].paymentMethod << endl;
+            }
+        }
+
+        if (!ok) cout << "No active bookings!\n";
+    }
+
+    // -----------------------------------
+    // CHECK OUT
+    // -----------------------------------
+    void checkOut() {
+        int id;
+        cout << "\nEnter Booking Number to Check-Out: ";
+        cin >> id;
+
+        if (id < 1 || id > bookingCount) {
+            cout << "Invalid booking ID!\n";
+            return;
+        }
+
+        if (!bookings[id - 1].active) {
+            cout << "Already checked-out!\n";
+            return;
+        }
+
+        bookings[id - 1].active = false;
+        totalCheckOutsToday++;
+
+        cout << "Check-Out Successful!\n";
+    }
+
+    // -----------------------------------
+    // TODAY SUMMARY
+    // -----------------------------------
+    void todaySummary() {
+        cout << "\n=========== TODAY'S SUMMARY ===========\n";
+        cout << "Total Members Entered: " << totalMembersEnteredToday << endl;
+        cout << "Total Check-Outs: " << totalCheckOutsToday << endl;
+    }
+};
+
+// -------------------------------------------
+// MAIN MENU
+// -------------------------------------------
+
+int main() {
+    Hotel hotel;
+    int choice;
+
+    while (true) {
+    	cout<<"WELLCOME TO ZAM ZAM HOTAL ";
+        cout << "\n=========== HOTEL MANAGEMENT SYSTEM ===========\n";
+        cout << "1. Book Room\n";
+        cout << "2. View Bookings\n";
+        cout << "3. Check-Out\n";
+        cout << "4. Today Summary\n";
+        cout << "5. Exit\n";
+        cout << "Enter choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1: hotel.addBooking(); break;
+            case 2: hotel.viewBookings(); break;
+            case 3: hotel.checkOut(); break;
+            case 4: hotel.todaySummary(); break;
+            case 5: cout << "Goodbye!\n"; return 0;
+            default: cout << "Invalid choice!\n";
+        }
+    }
+}
